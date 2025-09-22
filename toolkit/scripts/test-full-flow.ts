@@ -128,7 +128,7 @@ async function main() {
   await new Promise(resolve => setTimeout(resolve, 2000));
 
   // 1. Generate merkle tree
-  exec("pnpm run build:tree -- --in data/input.csv", "Generate merkle tree");
+  exec("pnpm run build:tree -- --in data/test-users-50000.csv", "Generate merkle tree for 50k users");
 
   // Read merkle root
   const merkleRootFile = path.join(process.cwd(), 'toolkit', 'out', 'merkle-root.txt');

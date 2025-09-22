@@ -18,6 +18,10 @@ lib/
 # Output files
 out/
 
+# Test data files (large datasets)
+data/test-*.csv
+toolkit/out/claims.json
+
 # IDE
 .vscode/
 .idea/

@@ -5,14 +5,17 @@
   "scripts": {
     "build:tree": "tsx toolkit/lib/build-tree.ts",
     "verify:leaf": "tsx toolkit/lib/verify-leaf.ts",
+    "generate:data": "tsx toolkit/lib/generate-test-data.ts",
     "clean": "rm -rf toolkit/out && mkdir -p toolkit/out",
     "publish:round": "tsx toolkit/lib/publish-round.ts",
-    "test:full-flow": "tsx toolkit/scripts/test-full-flow.ts"
+    "test:full-flow": "tsx toolkit/scripts/test-full-flow.ts",
+    "test:performance": "tsx toolkit/scripts/test-performance.ts"
   },
   "dependencies": {
     "@openzeppelin/merkle-tree": "^1.0.8",
     "csv-parse": "^5.5.6",
     "dotenv": "^16.4.5",
+    "ethers": "^6.7.1",
     "keccak256": "^1.0.6",
     "zod": "^3.23.8"
   },
