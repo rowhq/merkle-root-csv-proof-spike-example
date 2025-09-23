@@ -127,13 +127,21 @@ async function main() {
   // Wait a bit for anvil to be fully ready
   await new Promise(resolve => setTimeout(resolve, 2000));
 
-  // 1. Generate merkle tree
-  exec("pnpm run build:tree -- --in data/test-users-50000.csv", "Generate merkle tree for 50k users");
+  // 1. Generate test data in JSON format
+  exec("pnpm run generate:data -- --count 1000 --format json --output data/test-1000.json", "Generate 1000 users in JSON format");
 
-  // Read merkle root
+  // 2. Generate merkle tree
+  exec("pnpm run build:tree -- --in data/test-1000.json", "Generate merkle tree from JSON data");
+
+  // Read merkle root and manifest
   const merkleRootFile = path.join(process.cwd(), 'toolkit', 'out', 'merkle-root.txt');
+  const manifestFile = path.join(process.cwd(), 'toolkit', 'out', 'manifest.json');
   const merkleRoot = fs.readFileSync(merkleRootFile, 'utf8').trim();
+  const manifest = JSON.parse(fs.readFileSync(manifestFile, 'utf8'));
+  const dateGenerated = manifest.dateGenerated || Math.floor(Date.now() / 1000);
+
   console.log(`📋 Merkle Root: ${merkleRoot}`);
+  console.log(`📅 Date Generated: ${dateGenerated}`);
 
   // 2. Deploy UserDataRegistry contract
   const deployOutput = exec(
@@ -153,10 +161,10 @@ async function main() {
 
   console.log(`📋 Registry Address: ${registryAddress}`);
 
-  // 3. Update merkle root in registry
+  // 3. Update merkle root in registry with dateGenerated
   exec(
-    `forge script contracts/script/UpdateRegistryRoot.s.sol:UpdateRegistryRoot --sig "run(address,bytes32)" ${registryAddress} ${merkleRoot} --rpc-url ${ANVIL_RPC} --broadcast --unlocked --sender 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266`,
-    "Update registry merkle root"
+    `forge script contracts/script/UpdateRegistryRoot.s.sol:UpdateRegistryRoot --sig "run(address,bytes32,uint256)" ${registryAddress} ${merkleRoot} ${dateGenerated} --rpc-url ${ANVIL_RPC} --broadcast --unlocked --sender 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266`,
+    "Update registry merkle root with date generated"
   );
 
   // 4. Test claim verification

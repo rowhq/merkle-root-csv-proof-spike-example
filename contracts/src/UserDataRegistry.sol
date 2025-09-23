@@ -12,6 +12,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract UserDataRegistry is Ownable {
     bytes32 public merkleRoot;
     uint256 public lastUpdateTimestamp;
+    uint256 public dateGenerated; // Timestamp when the data was originally generated
     string public dataSourceIPFS; // Optional IPFS hash for full data
 
     // Struct to represent user data
@@ -26,23 +27,37 @@ contract UserDataRegistry is Ownable {
     }
 
     // Events
-    event MerkleRootUpdated(bytes32 indexed newRoot, uint256 timestamp);
+    event MerkleRootUpdated(bytes32 indexed newRoot, uint256 timestamp, uint256 dateGenerated);
     event UserDataVerified(address indexed userAddress, string userId, int256 reputation, uint256 cumulativePoints);
     event DataSourceUpdated(string ipfsHash);
 
     constructor(bytes32 _merkleRoot) Ownable(msg.sender) {
         merkleRoot = _merkleRoot;
         lastUpdateTimestamp = block.timestamp;
+        dateGenerated = block.timestamp; // Default to current time if not specified
+        dataSourceIPFS = "QmTemporaryHashPlaceholder123456789abcdef"; // Hardcoded placeholder
     }
 
     /**
      * @notice Updates the merkle root with new user data snapshot (owner only)
      * @param _merkleRoot New merkle root
+     * @param _dateGenerated Timestamp when the original data was generated
+     */
+    function updateMerkleRoot(bytes32 _merkleRoot, uint256 _dateGenerated) external onlyOwner {
+        merkleRoot = _merkleRoot;
+        lastUpdateTimestamp = block.timestamp;
+        dateGenerated = _dateGenerated;
+        emit MerkleRootUpdated(_merkleRoot, block.timestamp, _dateGenerated);
+    }
+
+    /**
+     * @notice Updates the merkle root with new user data snapshot (owner only) - legacy function
+     * @param _merkleRoot New merkle root
      */
     function updateMerkleRoot(bytes32 _merkleRoot) external onlyOwner {
         merkleRoot = _merkleRoot;
         lastUpdateTimestamp = block.timestamp;
-        emit MerkleRootUpdated(_merkleRoot, block.timestamp);
+        emit MerkleRootUpdated(_merkleRoot, block.timestamp, dateGenerated);
     }
 
     /**
@@ -187,5 +202,34 @@ contract UserDataRegistry is Ownable {
      */
     function getDataAge() external view returns (uint256) {
         return block.timestamp - lastUpdateTimestamp;
+    }
+
+    /**
+     * @notice Get the timestamp when the data was originally generated
+     */
+    function getDateGenerated() external view returns (uint256) {
+        return dateGenerated;
+    }
+
+    /**
+     * @notice Get the IPFS hash of the data source
+     */
+    function getDataSourceIPFS() external view returns (string memory) {
+        return dataSourceIPFS;
+    }
+
+    /**
+     * @notice Get all registry metadata
+     * @return root Current merkle root
+     * @return lastUpdate Timestamp of last update
+     * @return generated Timestamp when data was generated
+     * @return ipfsHash IPFS hash of data source
+     */
+    function getRegistryInfo()
+        external
+        view
+        returns (bytes32 root, uint256 lastUpdate, uint256 generated, string memory ipfsHash)
+    {
+        return (merkleRoot, lastUpdateTimestamp, dateGenerated, dataSourceIPFS);
     }
 }

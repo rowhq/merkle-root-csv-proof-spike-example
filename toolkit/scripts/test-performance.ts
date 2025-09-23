@@ -43,24 +43,24 @@ async function testPerformance() {
   for (const size of testSizes) {
     console.log(`\n📊 Testing with ${size} users:`);
 
-    // Generate dataset
+    // Generate dataset in JSON format
     exec(
-      `npm run generate:data -- --count ${size} --output data/test-${size}.csv`,
-      `Generate ${size} users`
+      `npm run generate:data -- --count ${size} --format json --output data/test-${size}.json`,
+      `Generate ${size} users in JSON format`
     );
 
     // Build merkle tree
     exec(
-      `npm run build:tree -- --in data/test-${size}.csv`,
+      `npm run build:tree -- --in data/test-${size}.json`,
       `Build Merkle tree for ${size} users`
     );
 
     // Get file sizes
-    const csvSize = fs.statSync(`data/test-${size}.csv`).size;
+    const jsonSize = fs.statSync(`data/test-${size}.json`).size;
     const claimsSize = fs.statSync('toolkit/out/claims.json').size;
 
     console.log(`📄 File sizes for ${size} users:`);
-    console.log(`   CSV: ${(csvSize / 1024 / 1024).toFixed(2)} MB`);
+    console.log(`   JSON Input: ${(jsonSize / 1024 / 1024).toFixed(2)} MB`);
     console.log(`   Claims JSON: ${(claimsSize / 1024 / 1024).toFixed(2)} MB`);
 
     // Test verification

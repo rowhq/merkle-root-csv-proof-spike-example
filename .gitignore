@@ -20,6 +20,7 @@ out/
 
 # Test data files (large datasets)
 data/test-*.csv
+data/test-*.json
 toolkit/out/claims.json
 
 # IDE
