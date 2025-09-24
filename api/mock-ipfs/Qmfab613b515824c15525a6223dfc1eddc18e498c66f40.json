@@ -1,0 +1,15 @@
+{
+  "date_generated": 1757808000,
+  "users_data": [
+    {
+      "UserId": "user1",
+      "Email": "user1@test.com",
+      "UserAddress": "0x1234567890123456789012345678901234567890",
+      "Reputation": "100",
+      "PrePoints": "50",
+      "Points": "150",
+      "CummulativePoints": "200"
+    }
+  ],
+  "merkle_root": "0x92dfaccaba7d4c59ce3b23f6f427f62022c1c55aa2a7ff36c00e67f0f564e348"
+}

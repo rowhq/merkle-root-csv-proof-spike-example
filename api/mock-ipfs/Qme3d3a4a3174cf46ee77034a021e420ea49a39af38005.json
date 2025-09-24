@@ -1,0 +1,96 @@
+{
+  "date_generated": 1732470060,
+  "users_data": [
+    {
+      "UserId": "user_011",
+      "Email": "kevin.white@example.com",
+      "UserAddress": "0x742d35Cc6634C0532925a3b8D93329D46143400A",
+      "Reputation": "79",
+      "PrePoints": "170",
+      "Points": "310",
+      "CummulativePoints": "1150"
+    },
+    {
+      "UserId": "user_012",
+      "Email": "lisa.martinez@example.com",
+      "UserAddress": "0x742d35Cc6634C0532925a3b8D93329D46143400B",
+      "Reputation": "66",
+      "PrePoints": "130",
+      "Points": "240",
+      "CummulativePoints": "820"
+    },
+    {
+      "UserId": "user_013",
+      "Email": "michael.clark@example.com",
+      "UserAddress": "0x742d35Cc6634C0532925a3b8D93329D46143400C",
+      "Reputation": "92",
+      "PrePoints": "220",
+      "Points": "480",
+      "CummulativePoints": "1950"
+    },
+    {
+      "UserId": "user_014",
+      "Email": "nancy.rodriguez@example.com",
+      "UserAddress": "0x742d35Cc6634C0532925a3b8D93329D46143400D",
+      "Reputation": "71",
+      "PrePoints": "145",
+      "Points": "285",
+      "CummulativePoints": "1050"
+    },
+    {
+      "UserId": "user_015",
+      "Email": "oscar.lewis@example.com",
+      "UserAddress": "0x742d35Cc6634C0532925a3b8D93329D46143400E",
+      "Reputation": "84",
+      "PrePoints": "195",
+      "Points": "390",
+      "CummulativePoints": "1520"
+    },
+    {
+      "UserId": "user_016",
+      "Email": "paula.walker@example.com",
+      "UserAddress": "0x742d35Cc6634C0532925a3b8D93329D46143400F",
+      "Reputation": "58",
+      "PrePoints": "90",
+      "Points": "160",
+      "CummulativePoints": "540"
+    },
+    {
+      "UserId": "user_017",
+      "Email": "quinn.hall@example.com",
+      "UserAddress": "0x742d35Cc6634C0532925a3b8D93329D461434010",
+      "Reputation": "89",
+      "PrePoints": "230",
+      "Points": "460",
+      "CummulativePoints": "1850"
+    },
+    {
+      "UserId": "user_018",
+      "Email": "rachel.allen@example.com",
+      "UserAddress": "0x742d35Cc6634C0532925a3b8D93329D461434011",
+      "Reputation": "76",
+      "PrePoints": "155",
+      "Points": "305",
+      "CummulativePoints": "1220"
+    },
+    {
+      "UserId": "user_019",
+      "Email": "steve.young@example.com",
+      "UserAddress": "0x742d35Cc6634C0532925a3b8D93329D461434012",
+      "Reputation": "63",
+      "PrePoints": "110",
+      "Points": "200",
+      "CummulativePoints": "680"
+    },
+    {
+      "UserId": "user_020",
+      "Email": "tina.king@example.com",
+      "UserAddress": "0x742d35Cc6634C0532925a3b8D93329D461434013",
+      "Reputation": "87",
+      "PrePoints": "205",
+      "Points": "415",
+      "CummulativePoints": "1680"
+    }
+  ],
+  "merkle_root": "0xe9b211cd1f92debab43643fba54a0722079fa2b542b3644e41da5f32c3be8b38"
+}

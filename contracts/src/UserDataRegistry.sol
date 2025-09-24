@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
@@ -9,7 +10,11 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  * @notice On-chain registry to verify and retrieve user data using Merkle proofs
  * @dev Uses merkle tree to verify user reputation, points, and other data
  */
-contract UserDataRegistry is Ownable {
+contract UserDataRegistry is AccessControl, Ownable {
+    // Role constants
+    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
+    bytes32 public constant UPDATER_ROLE = keccak256("UPDATER_ROLE");
+
     bytes32 public merkleRoot;
     uint256 public lastUpdateTimestamp;
     uint256 public dateGenerated; // Timestamp when the data was originally generated
@@ -36,14 +41,19 @@ contract UserDataRegistry is Ownable {
         lastUpdateTimestamp = block.timestamp;
         dateGenerated = block.timestamp; // Default to current time if not specified
         dataSourceIPFS = "QmTemporaryHashPlaceholder123456789abcdef"; // Hardcoded placeholder
+
+        // Setup roles
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(ADMIN_ROLE, msg.sender);
+        _grantRole(UPDATER_ROLE, msg.sender);
     }
 
     /**
-     * @notice Updates the merkle root with new user data snapshot (owner only)
+     * @notice Updates the merkle root with new user data snapshot (updater role required)
      * @param _merkleRoot New merkle root
      * @param _dateGenerated Timestamp when the original data was generated
      */
-    function updateMerkleRoot(bytes32 _merkleRoot, uint256 _dateGenerated) external onlyOwner {
+    function updateMerkleRoot(bytes32 _merkleRoot, uint256 _dateGenerated) external onlyRole(UPDATER_ROLE) {
         merkleRoot = _merkleRoot;
         lastUpdateTimestamp = block.timestamp;
         dateGenerated = _dateGenerated;
@@ -51,20 +61,10 @@ contract UserDataRegistry is Ownable {
     }
 
     /**
-     * @notice Updates the merkle root with new user data snapshot (owner only) - legacy function
-     * @param _merkleRoot New merkle root
-     */
-    function updateMerkleRoot(bytes32 _merkleRoot) external onlyOwner {
-        merkleRoot = _merkleRoot;
-        lastUpdateTimestamp = block.timestamp;
-        emit MerkleRootUpdated(_merkleRoot, block.timestamp, dateGenerated);
-    }
-
-    /**
-     * @notice Updates the IPFS hash for the full data source (owner only)
+     * @notice Updates the IPFS hash for the full data source (admin role required)
      * @param _ipfsHash IPFS hash of the complete user data
      */
-    function updateDataSource(string calldata _ipfsHash) external onlyOwner {
+    function updateDataSource(string calldata _ipfsHash) external onlyRole(ADMIN_ROLE) {
         dataSourceIPFS = _ipfsHash;
         emit DataSourceUpdated(_ipfsHash);
     }
@@ -84,6 +84,7 @@ contract UserDataRegistry is Ownable {
                 keccak256(
                     abi.encode(
                         userData.userId,
+                        //review: in production we may not include email for privacy reasons, this is just a test
                         userData.email,
                         userData.userAddress,
                         userData.reputation,
@@ -110,7 +111,10 @@ contract UserDataRegistry is Ownable {
         returns (int256 reputation)
     {
         require(verifyUserData(userData, proof), "Invalid user data proof");
-        require(userData.userAddress == msg.sender || msg.sender == owner(), "Unauthorized");
+        require(
+            userData.userAddress == msg.sender || hasRole(ADMIN_ROLE, msg.sender) || msg.sender == owner(),
+            "Unauthorized"
+        );
         return userData.reputation;
     }
 
@@ -126,7 +130,10 @@ contract UserDataRegistry is Ownable {
         returns (uint256 cumulativePoints)
     {
         require(verifyUserData(userData, proof), "Invalid user data proof");
-        require(userData.userAddress == msg.sender || msg.sender == owner(), "Unauthorized");
+        require(
+            userData.userAddress == msg.sender || hasRole(ADMIN_ROLE, msg.sender) || msg.sender == owner(),
+            "Unauthorized"
+        );
         return userData.cumulativePoints;
     }
 
@@ -142,7 +149,10 @@ contract UserDataRegistry is Ownable {
         returns (UserData memory verified)
     {
         require(verifyUserData(userData, proof), "Invalid user data proof");
-        require(userData.userAddress == msg.sender || msg.sender == owner(), "Unauthorized");
+        require(
+            userData.userAddress == msg.sender || hasRole(ADMIN_ROLE, msg.sender) || msg.sender == owner(),
+            "Unauthorized"
+        );
         return userData;
     }
 
@@ -231,5 +241,39 @@ contract UserDataRegistry is Ownable {
         returns (bytes32 root, uint256 lastUpdate, uint256 generated, string memory ipfsHash)
     {
         return (merkleRoot, lastUpdateTimestamp, dateGenerated, dataSourceIPFS);
+    }
+
+    /**
+     * @notice Grant admin role to an address (owner only)
+     * @param account Address to grant admin role
+     */
+    function grantAdminRole(address account) external onlyOwner {
+        grantRole(ADMIN_ROLE, account);
+    }
+
+    /**
+     * @notice Grant updater role to an address (owner or admin only)
+     * @param account Address to grant updater role
+     */
+    function grantUpdaterRole(address account) external {
+        require(msg.sender == owner() || hasRole(ADMIN_ROLE, msg.sender), "Unauthorized");
+        grantRole(UPDATER_ROLE, account);
+    }
+
+    /**
+     * @notice Revoke admin role from an address (owner only)
+     * @param account Address to revoke admin role from
+     */
+    function revokeAdminRole(address account) external onlyOwner {
+        revokeRole(ADMIN_ROLE, account);
+    }
+
+    /**
+     * @notice Revoke updater role from an address (owner or admin only)
+     * @param account Address to revoke updater role from
+     */
+    function revokeUpdaterRole(address account) external {
+        require(msg.sender == owner() || hasRole(ADMIN_ROLE, msg.sender), "Unauthorized");
+        revokeRole(UPDATER_ROLE, account);
     }
 }
