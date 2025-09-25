@@ -1,0 +1,13 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+script = "script"
+test = "test"
+cache_path = "cache"
+broadcast = "broadcast"
+remappings = [
+    "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/"
+]
+
+# See more config options https://github.com/foundry-rs/foundry/tree/master/config
