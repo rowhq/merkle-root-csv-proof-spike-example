@@ -14,8 +14,8 @@ This guide walks you through setting up and running the complete Merkle Tree app
 ### 1. Start Anvil (Local Blockchain)
 
 ```bash
-# Start Anvil with a specific chain ID
-anvil --chain-id 31337
+# Start Anvil with CORS support for frontend connectivity
+anvil --chain-id 31337 --host 0.0.0.0 --port 8545
 ```
 
 Keep this terminal open. Anvil will provide you with:
@@ -26,49 +26,69 @@ Keep this terminal open. Anvil will provide you with:
 ### 2. Deploy Smart Contract
 
 ```bash
-# Navigate to contracts directory
-cd contracts
+# Navigate to blockchain directory
+cd packages/blockchain
+
+# Load environment variables
+source .env
 
 # Deploy the UserDataRegistry contract
-forge script script/Deploy.s.sol:Deploy --rpc-url http://127.0.0.1:8545 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --broadcast
+forge script script/DeployUserDataRegistry.s.sol:DeployUserDataRegistry --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast
 
 # Note the deployed contract address from the output
 ```
 
 **Important**: Copy the deployed contract address - you'll need it for the frontend configuration.
 
-### 3. Grant Updater Role (Optional)
+### 3. Grant Updater Role (Required for Frontend)
 
-If you want to grant updater permissions to a specific address:
+**Important**: To use the frontend, you must grant UPDATER_ROLE to your MetaMask address:
 
 ```bash
-# From contracts directory
-./script/manage-roles.sh grant-updater <CONTRACT_ADDRESS> <TARGET_ADDRESS>
+# From blockchain directory
+# Replace <CONTRACT_ADDRESS> with the deployed contract address from step 2
+# Replace <YOUR_METAMASK_ADDRESS> with your MetaMask wallet address
+./script/manage-roles.sh grant-updater <CONTRACT_ADDRESS> <YOUR_METAMASK_ADDRESS>
 
 # Example:
-# ./script/manage-roles.sh grant-updater 0x5FbDB2315678afecb367f032d93F642f64180aa3 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+# ./script/manage-roles.sh grant-updater 0x5FbDB2315678afecb367f032d93F642f64180aa3 0xC59D87aC46b494142155c462b88A18EFaC9239AB
 ```
 
-### 4. Configure Frontend Environment
+**How to find your MetaMask address**: Open MetaMask, click on your account name to copy the address.
+
+### 4. Send ETH to Test Address (Optional)
+
+If you need to send ETH to a test address for transaction fees:
+
+```bash
+# From blockchain directory
+# Load environment variables first
+source .env
+
+# Send ETH to target address (replace <TARGET_ADDRESS> with actual address)
+cast send --private-key $PRIVATE_KEY --rpc-url $RPC_URL <TARGET_ADDRESS> --value <x ether>
+
+# Example:
+# cast send --private-key $PRIVATE_KEY --rpc-url $RPC_URL 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --value 10ether
+```
+
+### 5. Configure Frontend Environment
 
 ```bash
 # Navigate to frontend directory
-cd ../frontend
+cd ../../packages/frontend
 
-# Create environment file
-cat > .env << EOF
-REACT_APP_API_BASE_URL=http://127.0.0.1:3000
-REACT_APP_CONTRACT_ADDRESS=<YOUR_DEPLOYED_CONTRACT_ADDRESS>
-EOF
-```
+# Copy the environment template and update contract address
+cp .env.example .env
 
+# Update the contract address in .env file
 Replace `<YOUR_DEPLOYED_CONTRACT_ADDRESS>` with the address from step 2.
 
-### 5. Start API Server
+### 6. Start API Server
 
 ```bash
 # Navigate to API directory (new terminal)
-cd ../api
+cd packages/api
 
 # Install dependencies (if not done already)
 npm install
@@ -82,22 +102,22 @@ The API will be available at:
 - Health check: `http://127.0.0.1:3000/health`
 - API docs: `http://127.0.0.1:3000/docs`
 
-### 6. Start Frontend
+### 7. Start Frontend
 
 ```bash
 # Navigate to frontend directory (new terminal)
-cd ../frontend
+cd packages/frontend
 
 # Install dependencies (if not done already)
 npm install
 
-# Start the React app
+# Start the React app (will use PORT from .env file)
 npm start
 ```
 
-The frontend will be available at `http://localhost:3001`
+The frontend will be available at `http://localhost:3001` (configured in .env)
 
-### 7. Configure MetaMask
+### 8. Configure MetaMask
 
 1. Open MetaMask
 2. Add a new network with these settings:
@@ -106,10 +126,16 @@ The frontend will be available at `http://localhost:3001`
    - **Chain ID**: `31337`
    - **Currency Symbol**: ETH
 
-3. Import one of Anvil's test accounts:
+3. Import one of Anvil's test accounts OR use your existing MetaMask account:
+
+   **Option A - Import Anvil account (recommended for testing):**
    - Click "Import Account"
-   - Use private key: `0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80`
+   - Use the private key from your `packages/blockchain/.env` file (PRIVATE_KEY variable)
    - This gives you 10,000 ETH for testing
+
+   **Option B - Use your existing account:**
+   - Use your current MetaMask account
+   - You'll need to send some ETH to it using step 4 above
 
 ## Using the Application
 
@@ -143,22 +169,26 @@ Sample JSON files are available in the `data/` directory. Or create your own wit
 
 ### 3. Verify User Data (Contract Function)
 
-You can verify user data directly on the contract using the generated proofs stored in `api/data/trees/[tree-id]/proofs/[user-address].json`.
+You can verify user data directly on the contract using the generated proofs stored in `packages/api/data/trees/[tree-id]/proofs/[user-address].json`.
 
 ## File Structure
 
 ```
-├── contracts/          # Smart contracts (Foundry)
-│   ├── src/UserDataRegistry.sol
-│   ├── script/Deploy.s.sol
-│   └── script/manage-roles.sh
-├── api/                # Backend API (Node.js/Fastify)
-│   ├── src/
-│   ├── data/trees/     # Generated trees and proofs
-│   └── .env            # API configuration
-├── frontend/           # React frontend
-│   ├── src/
-│   └── .env            # Frontend configuration
+├── packages/
+│   ├── blockchain/     # Smart contracts (Foundry)
+│   │   ├── src/UserDataRegistry.sol
+│   │   ├── script/Deploy.s.sol
+│   │   └── script/manage-roles.sh
+│   ├── api/            # Backend API (Node.js/Fastify)
+│   │   ├── src/
+│   │   ├── data/trees/ # Generated trees and proofs
+│   │   └── .env        # API configuration
+│   ├── frontend/       # React frontend
+│   │   ├── src/
+│   │   └── .env        # Frontend configuration
+│   └── toolkit/        # Utility scripts
+│       ├── lib/
+│       └── scripts/
 └── data/               # Sample JSON files
 ```
 
@@ -173,13 +203,19 @@ BODY_LIMIT_MB=50
 
 ### Frontend (.env)
 ```
+PORT=3001
 REACT_APP_API_BASE_URL=http://127.0.0.1:3000
 REACT_APP_CONTRACT_ADDRESS=<deployed_contract_address>
 ```
 
-### Contracts (.env) - for scripts
+### Blockchain (.env) - for contract deployment
 ```
+# Located at: packages/blockchain/.env
+# Foundry Default Private Key (Account #0)
+# Address: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
 PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+
+# Local Anvil RPC
 RPC_URL=http://127.0.0.1:8545
 ```
 
@@ -207,16 +243,20 @@ RPC_URL=http://127.0.0.1:8545
 
 ## Development Commands
 
-### Contracts
+### Blockchain (Smart Contracts)
 ```bash
+# Navigate to blockchain directory
+cd packages/blockchain
+
 # Compile contracts
 forge build
 
 # Run tests
 forge test
 
-# Deploy to local
-forge script script/Deploy.s.sol:Deploy --rpc-url http://127.0.0.1:8545 --private-key $PRIVATE_KEY --broadcast
+# Deploy to local (load .env from current directory)
+source .env
+forge script script/DeployUserDataRegistry.s.sol:DeployUserDataRegistry --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast
 ```
 
 ### API

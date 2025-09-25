@@ -1,43 +1,12 @@
-# Dependencies
-node_modules/
-pnpm-lock.yaml
-yarn.lock
-package-lock.json
-
-# Environment variables
-.env
-.env.local
-.env.production
-
-# Foundry
-foundry-out/
-cache/
-broadcast/
-lib/
-
-# Output files
-out/
-
-# Test data files (large datasets)
-data/test-*.csv
-data/test-*.json
-toolkit/out/claims.json
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
 # OS
 .DS_Store
 Thumbs.db
 
-# Logs
-*.log
-logs/
+# IDE
+.vscode/
+.idea/
 
-# Runtime
-*.pid
-*.seed
-*.pid.lock
+# Test data files (large datasets)
+data/test-*.csv
+data/test-*.json
+!data/data-test-10users-*.json

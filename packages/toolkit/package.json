@@ -1,0 +1,28 @@
+{
+  "name": "merkle-userdata-mvp",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build:tree": "tsx lib/build-tree.ts",
+    "verify:leaf": "tsx lib/verify-leaf.ts",
+    "generate:data": "tsx lib/generate-test-data.ts",
+    "clean": "rm -rf out && mkdir -p out",
+    "publish:round": "tsx lib/publish-round.ts",
+    "test:full-flow": "tsx scripts/test-full-flow.ts",
+    "test:performance": "tsx scripts/test-performance.ts"
+  },
+  "dependencies": {
+    "@openzeppelin/merkle-tree": "^1.0.8",
+    "csv-parse": "^5.5.6",
+    "dotenv": "^16.4.5",
+    "ethers": "^6.7.1",
+    "keccak256": "^1.0.6",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.5",
+    "typescript": "^5.4.5"
+  }
+}

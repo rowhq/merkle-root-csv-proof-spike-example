@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Output
+out/
+
+# Environment
+.env
+.env.local
+
+# Logs
+*.log

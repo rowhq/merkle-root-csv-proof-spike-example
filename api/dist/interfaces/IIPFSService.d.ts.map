@@ -1,1 +1,0 @@
-{"version":3,"file":"IIPFSService.d.ts","sourceRoot":"","sources":["../../src/interfaces/IIPFSService.ts"],"names":[],"mappings":"AAAA;;GAEG;AAEH,MAAM,WAAW,YAAY;IAC3B;;OAEG;IACH,MAAM,CAAC,IAAI,EAAE,GAAG,GAAG,OAAO,CAAC,MAAM,CAAC,CAAC;IAEnC;;OAEG;IACH,QAAQ,CAAC,IAAI,EAAE,MAAM,GAAG,OAAO,CAAC,GAAG,CAAC,CAAC;CACtC"}
