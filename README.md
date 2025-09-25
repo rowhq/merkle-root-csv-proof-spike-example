@@ -1,23 +1,27 @@
-# Merkle User Data Registry (Foundry + TypeScript)
+# Merkle User Data Registry - Full Stack Application
 
-High-performance blockchain-verified user data registry system using Merkle trees. Enables on-chain verification and querying of user data (reputation, points, email) with support for large datasets (tested with 50,000+ users).
+Complete full-stack application for blockchain-verified user data registry using Merkle trees. Includes smart contracts, API backend, React frontend, and comprehensive tooling for managing large datasets (tested with 50,000+ users).
 
 ## 🚀 Key Features
 
+- **Full Stack Solution**: Smart contracts, REST API, React frontend, and CLI tools
 - **Merkle Tree Verification**: Cryptographic proof of user data without storing it all on-chain
 - **Large Dataset Support**: Optimized for 50,000+ users with efficient proof generation
 - **JSON & CSV Support**: Flexible input formats with JSON being 3% faster for large datasets
+- **Role-Based Access Control**: ADMIN and UPDATER roles for secure contract management
+- **MetaMask Integration**: Direct browser wallet connectivity for contract interaction
+- **Real-time Updates**: Frontend displays live contract state and transaction status
 - **Timestamped Data**: Tracks when data was generated with UTC timestamps
 - **IPFS Integration Ready**: Contract supports storing IPFS hash references
 - **Gas Efficient**: Constant verification cost regardless of dataset size
 - **Performance Tested**: Comprehensive benchmarking tools included
 
-## 📦 Main Components
+## 📦 Architecture Overview
 
-- `UserDataRegistry.sol` — Main contract for user data verification with timestamp tracking
-- `toolkit/lib/` — TypeScript libraries for data generation and Merkle tree operations
-- `toolkit/scripts/` — Automated testing and benchmarking scripts
-- `contracts/script/` — Foundry deployment and update scripts
+- `packages/blockchain/` — Foundry smart contracts with deployment scripts
+- `packages/api/` — Node.js/Fastify REST API for Merkle tree generation and management
+- `packages/frontend/` — React application with MetaMask integration
+- `packages/toolkit/` — CLI utilities for data generation and testing
 
 ## 📊 User Data Schema
 
@@ -37,16 +41,24 @@ struct UserData {
 
 - Node.js 18+
 - Foundry (forge, cast, anvil)
+- MetaMask browser extension
 - pnpm / npm / yarn
 
-## 📥 Installation
+## 📥 Quick Setup
+
+For complete setup instructions, see [SETUP_GUIDE.md](./SETUP_GUIDE.md)
 
 ```bash
-# Install Node.js dependencies (including ethers for address generation)
-npm install
+# Install dependencies for all packages
+cd packages/api && npm install
+cd ../frontend && npm install
+cd ../toolkit && npm install
+cd ../blockchain && forge install
 
-# Install Foundry dependencies (OpenZeppelin contracts)
-forge install
+# Start local blockchain
+anvil --chain-id 31337 --host 0.0.0.0 --port 8545
+
+# Deploy contract and setup roles (see SETUP_GUIDE.md for details)
 ```
 
 ## 📝 Input Data Formats
@@ -75,36 +87,47 @@ UserId,Email,UserAddress,Reputation,PrePoints,Points,CummulativePoints
 user_001,user001@example.com,0x1234abcd55ee77aa99bbccddeeff001122334455,85,100,150,500
 ```
 
-## 🎯 Quick Start
+## 🎯 Application Usage
 
-### Generate Test Data
+### 1. Start the Stack
 ```bash
+# Terminal 1: Start local blockchain
+anvil --chain-id 31337 --host 0.0.0.0 --port 8545
+
+# Terminal 2: Start API server
+cd packages/api && npm run build && npm start
+
+# Terminal 3: Start React frontend
+cd packages/frontend && npm start
+
+# Visit: http://localhost:3001
+```
+
+### 2. Using the Frontend
+1. **Upload JSON File**: Use the file upload component with sample data from `data/` directory
+2. **Generate Merkle Tree**: Click "Generate Tree" to create the tree via API
+3. **Update Smart Contract**: Click "Update Contract" to store the Merkle root on-chain
+4. **View Contract State**: See current root, timestamps, and transaction status
+
+### 3. CLI Tools (Advanced)
+
+Generate test data:
+```bash
+cd packages/toolkit
 # Generate 1,000 users in JSON format
-npm run generate:data -- --count 1000 --format json --output data/test-1000.json
-
-# Generate 50,000 users in JSON format
-npm run generate:data -- --count 50000 --format json --output data/test-50000.json
-
-# Generate CSV format (legacy)
-npm run generate:data -- --count 1000 --format csv --output data/test-1000.csv
+npm run generate:data -- --count 1000 --format json --output ../data/test-1000.json
 ```
 
-### Build Merkle Tree
+Build Merkle tree:
 ```bash
+cd packages/toolkit
 # From JSON (extracts date_generated automatically)
-npm run build:tree -- --in data/test-1000.json
-
-# From CSV
-npm run build:tree -- --in data/test-1000.csv
+npm run build:tree -- --in ../data/test-1000.json
 ```
 
-Generates files in `toolkit/out/`:
-- `merkle-root.txt` — Tree root hash for the contract
-- `claims.json` — User data and proofs indexed by address
-- `manifest.json` — Tree metadata with timestamp
-
-### Verify Data Locally
+Verify data locally:
 ```bash
+cd packages/toolkit
 npm run verify:leaf -- --address 0x1234abcd55ee77aa99bbccddeeff001122334455
 ```
 
@@ -112,6 +135,7 @@ npm run verify:leaf -- --address 0x1234abcd55ee77aa99bbccddeeff001122334455
 
 ### Complete Local Test Flow
 ```bash
+cd packages/toolkit
 npm run test:full-flow
 ```
 
@@ -125,11 +149,12 @@ This script automatically:
 
 ### Performance Testing
 ```bash
+cd packages/toolkit
 # Test with multiple dataset sizes
 npm run test:performance
 
 # Benchmark 50k users (CSV vs JSON comparison)
-npx tsx toolkit/scripts/benchmark-50k.ts
+npx tsx scripts/benchmark-50k.ts
 ```
 
 ## 📈 Performance Metrics
@@ -148,19 +173,25 @@ npx tsx toolkit/scripts/benchmark-50k.ts
 
 ### Manual Deployment
 ```bash
+cd packages/blockchain
+
 # 1. Set environment variables
 cp .env.example .env
 # Edit .env with your private key and RPC URL
 
 # 2. Deploy UserDataRegistry
-forge script contracts/script/DeployUserDataRegistry.s.sol:DeployUserDataRegistry \
-  --rpc-url $RPC_URL --broadcast
+source .env
+forge script script/DeployUserDataRegistry.s.sol:DeployUserDataRegistry \
+  --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast
 
-# 3. Update Merkle root with timestamp
-forge script contracts/script/UpdateRegistryRoot.s.sol:UpdateRegistryRoot \
+# 3. Grant UPDATER role to frontend wallet
+./script/manage-roles.sh grant-updater <CONTRACT_ADDRESS> <YOUR_METAMASK_ADDRESS>
+
+# 4. Update Merkle root with timestamp
+forge script script/UpdateRegistryRoot.s.sol:UpdateRegistryRoot \
   --sig "run(address,bytes32,uint256)" \
   $REGISTRY_ADDRESS $MERKLE_ROOT $DATE_GENERATED \
-  --rpc-url $RPC_URL --broadcast
+  --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast
 ```
 
 ## 🔧 Contract Functions
@@ -206,40 +237,57 @@ function getDateGenerated() returns (uint256)
 - **Airdrops**: Verify eligibility without exposing entire user list
 - **Compliance**: Prove data integrity with timestamp verification
 - **DAO Governance**: Weight voting power by verified reputation
+- **Enterprise Solutions**: Full-stack application ready for business deployment
 
 ## 🔒 Security Considerations
 
+- **Role-Based Access**: ADMIN and UPDATER roles protect contract functions
 - **Privacy**: Email data (PII) is included - implement privacy measures for production
 - **Validation**: Reputation scores enforced between -100 and 100
-- **Access Control**: Only users can query their own data (except contract owner)
+- **MetaMask Security**: Secure wallet integration with transaction confirmation
 - **Immutability**: Merkle root updates are logged with timestamps
 - **Gas Optimization**: Proof verification is O(log n) complexity
 
 ## 📁 Project Structure
 
 ```
-├── contracts/
-│   ├── src/
-│   │   └── UserDataRegistry.sol    # Main registry contract
-│   └── script/
-│       ├── DeployUserDataRegistry.s.sol
-│       └── UpdateRegistryRoot.s.sol
-├── toolkit/
-│   ├── lib/
-│   │   ├── generate-test-data.ts   # Data generation with valid EVM addresses
-│   │   ├── build-tree.ts          # Merkle tree construction
-│   │   └── verify-leaf.ts         # Local proof verification
-│   └── scripts/
-│       ├── test-full-flow.ts      # End-to-end testing
-│       ├── test-performance.ts    # Multi-size benchmarking
-│       └── benchmark-50k.ts       # Detailed 50k comparison
+├── packages/
+│   ├── blockchain/                 # Smart contracts (Foundry)
+│   │   ├── src/UserDataRegistry.sol
+│   │   ├── script/
+│   │   │   ├── DeployUserDataRegistry.s.sol
+│   │   │   ├── UpdateRegistryRoot.s.sol
+│   │   │   └── manage-roles.sh     # Role management script
+│   │   └── foundry.toml
+│   ├── api/                        # REST API Server (Node.js/Fastify)
+│   │   ├── src/
+│   │   │   ├── controllers/        # API endpoints
+│   │   │   ├── services/           # Business logic
+│   │   │   └── server.ts
+│   │   └── package.json
+│   ├── frontend/                   # React Application
+│   │   ├── src/
+│   │   │   ├── components/         # UI components
+│   │   │   ├── services/           # Contract & API integration
+│   │   │   └── App.tsx
+│   │   └── package.json
+│   └── toolkit/                    # CLI Utilities
+│       ├── lib/
+│       │   ├── generate-test-data.ts
+│       │   ├── build-tree.ts
+│       │   └── verify-leaf.ts
+│       └── scripts/                # Automated testing
 ├── data/                           # Test datasets (gitignored)
-└── toolkit/out/                    # Generated Merkle trees
+├── SETUP_GUIDE.md                  # Complete setup instructions
+└── README.md                       # This file
 ```
 
-## 🧪 Testing Commands
+## 🧪 Development Commands
 
+### Smart Contract Testing
 ```bash
+cd packages/blockchain
+
 # Format Solidity code
 forge fmt
 
@@ -248,6 +296,31 @@ forge test
 
 # Generate coverage report
 forge coverage
+```
+
+### API Development
+```bash
+cd packages/api
+
+# Development mode with auto-reload
+npm run dev
+
+# Build and start production server
+npm run build && npm start
+
+# Run tests
+npm test
+```
+
+### Frontend Development
+```bash
+cd packages/frontend
+
+# Start development server
+npm start
+
+# Build for production
+npm run build
 ```
 
 ## 📊 Proof Size Scaling
